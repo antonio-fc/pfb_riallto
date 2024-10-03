@@ -11,7 +11,7 @@ from riallto import pfb_spectrometer
 
 def db(x):
     """ Convert linear value to dB value """
-    return 10*np.log10(x)
+    return 10*np.log10(x, out=np.zeros_like(x, dtype=np.float64), where=(x!=0))
 
 def generate_win_coeffs(M, P, window_fn="hamming"):
     win_coeffs = scipy.signal.get_window(window_fn, M*P)
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     pg = np.sum(np.abs(win_coeffs)**2)
     win_coeffs /= pg**.5 # Normalize for processing gain
     
-    X_psd = pfb_spectrometer(data, n_taps=M, n_chan=P, n_int=2, win_coeffs=win_coeffs)
+    X_psd = pfb_spectrometer(data, n_taps=M, n_chan=P, n_win=W, n_int=2, win_coeffs=win_coeffs)
 
     plt.imshow(db(X_psd), cmap='viridis', aspect='auto')
     plt.colorbar()
