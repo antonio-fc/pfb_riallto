@@ -54,7 +54,6 @@ if __name__ == "__main__":
     X_psd2 = pfb_spectrometer(data, n_taps=M, n_chan=P, n_win=W, n_int=1000, win_coeffs=win_coeffs)
     plt.plot(db(X_psd[0]), c='#cccccc', label='short integration')
     plt.plot(db(X_psd2[1]), c='#cc0000', label='long integration')
-    plt.ylim(-50, -30)
     plt.xlim(0, P/2)
     plt.xlabel("Channel")
     plt.ylabel("Power [dB]")
