@@ -51,7 +51,7 @@ if __name__ == "__main__":
     plt.show()
 
     # Image 2
-    X_psd2 = pfb_spectrometer(data, n_taps=M, n_chan=P, n_win=W, n_int=100, win_coeffs=win_coeffs)
+    X_psd2 = pfb_spectrometer(data, n_taps=M, n_chan=P, n_win=W, n_int=1024, win_coeffs=win_coeffs)
     plt.plot(db(X_psd[0]), c='#cccccc', label='short integration')
     plt.plot(db(X_psd2[1]), c='#cc0000', label='long integration')
     plt.xlim(0, P/2)
