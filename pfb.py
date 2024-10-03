@@ -42,12 +42,22 @@ if __name__ == "__main__":
     pg = np.sum(np.abs(win_coeffs)**2)
     win_coeffs /= pg**.5 # Normalize for processing gain
     
+    # Image 1
     X_psd = pfb_spectrometer(data, n_taps=M, n_chan=P, n_win=W, n_int=2, win_coeffs=win_coeffs)
-
     plt.imshow(db(X_psd), cmap='viridis', aspect='auto')
     plt.colorbar()
     plt.xlabel("Channel")
     plt.ylabel("Time")
-    
+    plt.show()
+
+    # Image 2
+    X_psd2 = pfb_spectrometer(data, n_taps=M, n_chan=P, n_win=W, n_int=1000, win_coeffs=win_coeffs)
+    plt.plot(db(X_psd[0]), c='#cccccc', label='short integration')
+    plt.plot(db(X_psd2[1]), c='#cc0000', label='long integration')
+    plt.ylim(-50, -30)
+    plt.xlim(0, P/2)
+    plt.xlabel("Channel")
+    plt.ylabel("Power [dB]")
+    plt.legend()
     plt.show()
     
