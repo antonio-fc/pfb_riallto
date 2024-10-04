@@ -1,33 +1,38 @@
 import numpy as np
 import time
 
-def pfb_fir_frontend(x, win_coeffs, M, P, W):
-    x_p = x.reshape((W*M, P)).T
+def pfb_fir_frontend(x, win_coeffs, M, P):
+    x_p = x.reshape((M, P)).T
     h_p = win_coeffs.reshape((M, P)).T
-    x_summed = np.zeros((P, M * W)) # x_summed = np.zeros((P, M * W - M + 1)) ???
-    for t in range(0, M*W-M + 1):
-        x_weighted = x_p[:, t:t+M] * h_p
-        x_summed[:, t] = x_weighted.sum(axis=1)
+    x_summed = np.zeros((P, M)) # x_summed = np.zeros((P, M * W - M + 1)) ???
+    x_weighted = x_p * h_p
+    x_summed = x_weighted.sum(axis=1)
     return x_summed.T
 
-def fft(x_p, P, axis=1):
-    return np.fft.fft(x_p, P, axis=axis)
+def fft(x_p):
+    return np.fft.fft(x_p)
 
 def squaring_pfb(x_pfb):
     return np.real(x_pfb * np.conj(x_pfb)) # same as x_psd = np.abs(x_pfb)**2
 
 def riallto_stuff(x, win_coeffs, M, P, W):
     x = x[:int(len(x)//(M*P))*M*P] # Ensure it's an integer multiple of win_coeffs
+    output = np.empty([M*W, P])
     
-    # Apply frontend, take FFT, then take power (i.e. square)
-    x_fir = pfb_fir_frontend(x, win_coeffs, M, P, W)
+    for i in range(0, M*W-M + 1):
+        # Apply frontend, take FFT, then take power (i.e. square)
+        sample_win = x[i*W:i*W+M*P]
+        
+        x_fir = pfb_fir_frontend(sample_win, win_coeffs, M, P)
 
-    x_pfb = fft(x_fir, P) # pfb filterbank
+        x_pfb = fft(x_fir) # pfb filterbank
 
-    x_psd = squaring_pfb(x_pfb)
+        x_psd = squaring_pfb(x_pfb)
+
+        output[i, :] = x_psd
     
 
-    return x_psd
+    return output
 
 def pfb_spectrometer(x, n_taps, n_chan, n_win, n_int, win_coeffs):
     M = n_taps
