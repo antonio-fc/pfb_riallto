@@ -25,7 +25,7 @@ if __name__ == "__main__":
     sns.set_style("white")
     
     M     = 4          # Number of taps
-    P     = 1024       # Number of 'branches', also fft length
+    P     = 128       # Number of 'branches', also fft length
     W     = 16       # Number of windows of length M*P in input time stream
     n_int = 10          # Number of time integrations on output data
 
