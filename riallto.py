@@ -11,24 +11,6 @@ def pfb_fir_frontend(x, win_coeffs, M, P):
 
 def fft(x_p, N):
     return np.fft.fft(x_p)
-    # """
-    # A recursive implementation of 
-    # the 1D Cooley-Tukey FFT, the 
-    # input should have a length of 
-    # power of 2. 
-    # """
-    
-    # if N == 1:
-    #     return x_p
-    # else:
-    #     X_even = fft(x_p[::2], N/2)
-    #     X_odd = fft(x_p[1::2], N/2)
-    #     factor = np.exp(-2j*np.pi*np.arange(N)/ N)
-        
-    #     X = np.concatenate(
-    #         [X_even+factor[:int(N/2)]*X_odd,
-    #          X_even+factor[int(N/2):]*X_odd])
-    #     return X
     
 def newFFT(x, N):
     cos = np.empty(N)

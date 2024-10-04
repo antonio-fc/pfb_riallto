@@ -42,7 +42,6 @@ if __name__ == "__main__":
     pg = np.sum(np.abs(win_coeffs)**2)
     win_coeffs /= pg**.5 # Normalize for processing gain
     
-    print(data.dtype)
     # Image 1
     X_psd = pfb_spectrometer(data, n_taps=M, n_chan=P, n_win=W, n_int=16, win_coeffs=win_coeffs)
     plt.imshow(db(X_psd), cmap='viridis', aspect='auto')
