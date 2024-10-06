@@ -11,12 +11,31 @@ def pfb_fir_frontend(x, win_coeffs, M, P):
 
 def fft(x_p, N):
     return np.fft.fft(x_p)
+
+def recFFT(x, N):
+    """
+    A recursive implementation of 
+    the 1D Cooley-Tukey FFT, the 
+    input should have a length of 
+    power of 2. 
+    """
+    if N == 1:
+        return x
+    else:
+        X_even = recFFT(x[::2], N/2)
+        X_odd = recFFT(x[1::2], N/2)
+        factor = np.exp(-2j*np.pi*np.arange(N)/ N)
+        
+        X = np.concatenate(
+            [X_even+factor[:int(N/2)]*X_odd,
+             X_even+factor[int(N/2):]*X_odd])
+        return X
     
 def newFFT(x, N):
     cos = np.empty(N)
     sin = np.empty(N)
     for k in range(N):
-        cos[k], sin[k] = compSum(x, k, N)
+        cos[k], sin[k] = compSum2(x, k, N)
     #x_pfb = cos - 1j * sin
     return (cos, sin)
 
@@ -27,6 +46,14 @@ def compSum(x, k, N):
         cos_sum += x[n] * np.cos(k*n*2.*np.pi/N)
         sin_sum += x[n] * np.sin(k*n*2.*np.pi/N)
     return (cos_sum, sin_sum)
+
+def compSum2(x, k, N):
+    sin_sum = np.empty(N)
+    cos_sum = np.empty(N)
+    for n in range(N):
+        cos_sum[n] = x[n] * np.cos(k*n*2.*np.pi/N)
+        sin_sum[n] = x[n] * np.sin(k*n*2.*np.pi/N)
+    return (np.sum(cos_sum), np.sum(sin_sum))
 
 def squaring_pfb(x_pfb):
     return np.real(x_pfb * np.conj(x_pfb)) # same as x_psd = np.abs(x_pfb)**2
@@ -47,10 +74,12 @@ def riallto_stuff(x, win_coeffs, M, P, W):
         x_fir = pfb_fir_frontend(sample_win, win_coeffs, M, P)
 
         # x_pfb = fft(x_fir, P) # pfb filterbank
-        real, complex = newFFT(x_fir, P)
+        x_pfb = recFFT(x_fir, P)
+        # real, complex = newFFT(x_fir, P)
+        # x_pfb = real - 1j*complex
 
-        # x_psd = squaring_pfb(x_pfb)
-        x_psd = newSquaring(real, complex)
+        x_psd = squaring_pfb(x_pfb)
+        # x_psd = newSquaring(real, complex)
 
         output[i, :] = x_psd
     

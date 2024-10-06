@@ -25,8 +25,8 @@ if __name__ == "__main__":
     sns.set_style("white")
     
     M     = 4          # Number of taps
-    P     = 128       # Number of 'branches', also fft length
-    W     = 16       # Number of windows of length M*P in input time stream
+    P     = 1024       # Number of 'branches', also fft length
+    W     = 4       # Number of windows of length M*P in input time stream
     n_int = 10          # Number of time integrations on output data
 
     # Generate a test data steam
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     plt.show()
 
     # Image 2
-    X_psd2 = pfb_spectrometer(data, n_taps=M, n_chan=P, n_win=W, n_int=16, win_coeffs=win_coeffs)
+    X_psd2 = pfb_spectrometer(data, n_taps=M, n_chan=P, n_win=W, n_int=1024, win_coeffs=win_coeffs)
     plt.plot(db(X_psd[0]), c='#cccccc', label='short integration')
     plt.plot(db(X_psd2[1]), c='#cc0000', label='long integration')
     plt.xlim(0, P/2)
