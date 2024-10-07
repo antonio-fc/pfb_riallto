@@ -12,24 +12,58 @@ def pfb_fir_frontend(x, win_coeffs, M, P):
 def fft(x_p, N):
     return np.fft.fft(x_p)
 
-def recFFT(x, N):
-    """
-    A recursive implementation of 
-    the 1D Cooley-Tukey FFT, the 
-    input should have a length of 
-    power of 2. 
-    """
+def sinRecFFT(x, N):
     if N == 1:
         return x
     else:
-        X_even = recFFT(x[::2], N/2)
-        X_odd = recFFT(x[1::2], N/2)
-        factor = np.exp(-2j*np.pi*np.arange(N)/ N)
+        X_even = sinRecFFT(x[::2], N/2)
+        X_odd = sinRecFFT(x[1::2], N/2)
+        sin_factor = np.sin(np.arange(N)*2.*np.pi/N)
+        # factor = np.exp(-2j*np.pi*np.arange(N)/ N)
         
         X = np.concatenate(
-            [X_even+factor[:int(N/2)]*X_odd,
-             X_even+factor[int(N/2):]*X_odd])
+            [X_even+sin_factor[:int(N/2)]*X_odd,
+             X_even+sin_factor[int(N/2):]*X_odd])
         return X
+    
+def cosRecFFT(x, N):
+    if N == 1:
+        return x
+    else:
+        X_even = cosRecFFT(x[::2], N/2)
+        X_odd = cosRecFFT(x[1::2], N/2)
+        cos_factor = np.cos(np.arange(N)*2.*np.pi/N)
+        # factor = np.exp(-2j*np.pi*np.arange(N)/ N)
+        
+        X = np.concatenate(
+            [X_even+cos_factor[:int(N/2)]*X_odd,
+             X_even+cos_factor[int(N/2):]*X_odd])
+        return X
+    
+def recFFT(x_r, x_c, N):
+    if N == 1:
+        return (x_r, x_c)
+    else:
+        X_evenR, X_evenC = recFFT(x_r[::2], x_c[::2], N/2)
+        X_oddR, X_oddC = recFFT(x_r[1::2], x_c[1::2], N/2)
+        real_factor = np.cos(np.arange(N)*2.*np.pi/N)
+        complex_factor = np.sin(np.arange(N)*2.*np.pi/N)
+        # factor = real_factor - 1j*complex_factor
+        # factor = np.exp(-2j*np.pi*np.arange(N)/ N)
+        
+        a, b, c, d = X_oddR, X_oddC, real_factor, complex_factor
+        real1 = a*c[:int(N/2)] - b*d[:int(N/2)]
+        real2 = a*c[int(N/2):] - b*d[int(N/2):]
+        complex1 = b*c[:int(N/2)] + a*d[:int(N/2)] 
+        complex2 = b*c[int(N/2):] + a*d[int(N/2):]
+
+        X_r = np.concatenate(
+            [X_evenR+real1,
+             X_evenR+real2])
+        X_c = np.concatenate(
+            [X_evenC+complex1,
+             X_evenC+complex2])
+        return (X_r, X_c)
     
 def newFFT(x, N):
     cos = np.empty(N)
@@ -74,12 +108,14 @@ def riallto_stuff(x, win_coeffs, M, P, W):
         x_fir = pfb_fir_frontend(sample_win, win_coeffs, M, P)
 
         # x_pfb = fft(x_fir, P) # pfb filterbank
-        x_pfb = recFFT(x_fir, P)
+        real, complex = recFFT(x_fir, np.zeros(P), P)
+        # real = cosRecFFT(x_fir, P)
+        # complex = sinRecFFT(x_fir, P)
         # real, complex = newFFT(x_fir, P)
         # x_pfb = real - 1j*complex
 
-        x_psd = squaring_pfb(x_pfb)
-        # x_psd = newSquaring(real, complex)
+        # x_psd = squaring_pfb(x_pfb)
+        x_psd = newSquaring(real, complex)
 
         output[i, :] = x_psd
     

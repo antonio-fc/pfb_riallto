@@ -26,7 +26,7 @@ if __name__ == "__main__":
     
     M     = 4          # Number of taps
     P     = 1024       # Number of 'branches', also fft length
-    W     = 4       # Number of windows of length M*P in input time stream
+    W     = 1024       # Number of windows of length M*P in input time stream
     n_int = 10          # Number of time integrations on output data
 
     # Generate a test data steam
