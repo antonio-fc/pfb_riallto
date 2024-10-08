@@ -6,7 +6,9 @@ Simple implementation of a polyphase filterbank.
 import numpy as np
 import scipy
 from scipy.signal import firwin, freqz, lfilter
-from riallto import pfb_spectrometer
+from func import pfb_spectrometer
+import pylab as plt
+import seaborn as sns
 
 
 def db(x):
@@ -20,8 +22,6 @@ def generate_win_coeffs(M, P, window_fn="hamming"):
     return win_coeffs
 
 if __name__ == "__main__":
-    import pylab as plt
-    import seaborn as sns
     sns.set_style("white")
     
     M     = 4          # Number of taps
