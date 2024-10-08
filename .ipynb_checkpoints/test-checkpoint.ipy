@@ -1,0 +1,58 @@
+import npu
+import numpy as np
+from npu.build.appbuilder import AppBuilder
+from npu.build.kernel import Kernel
+from npu.utils import OpenCVImageReader, image_plot
+from npu.runtime import AppRunner
+from PIL import Image
+from IPython import get_ipython
+
+# Making the passthrough kernel
+kernel_name = "passthrough"
+kernel_path = f"./kernels/{kernel_name}.c"
+with open(kernel_path, 'r') as file:
+    data = file.read()
+# have to install ipykernel (pip3 install ipykernel)
+get_ipython().run_cell_magic('kernel', '', data) 
+passthrough.ports[0].array = np.ndarray([1280, 4], dtype=np.uint8)
+passthrough.ports[1].array = np.ndarray([1280, 4], dtype=np.uint8)
+
+# Making and building the application
+class SimpleApplication(AppBuilder):
+
+    def __init__(self, kernel:Kernel):
+        self.kernel = kernel
+        super().__init__()
+
+    def callgraph(self, x_in: np.ndarray, x_out: np.ndarray) -> None:
+        rows = x_in.shape[0]
+        bytes_per_row = x_in.shape[1] * x_in.shape[2]
+        for row in range(rows):
+            kernel_output = self.kernel(x_in[row], bytes_per_row)
+            x_out[row] = kernel_output
+
+app_builder = SimpleApplication(kernel=passthrough)
+
+input_image = np.zeros(shape=(720,1280,4), dtype=np.uint8)
+output_image = np.zeros(shape=(720,1280,4), dtype=np.uint8)
+
+app_builder.build(input_image, output_image)
+
+# Running the application
+app = AppRunner('SimpleApplication.xclbin')
+
+img = OpenCVImageReader('images/jpg/ryzenai_future_starts_now.jpg').img
+
+input_image = app.allocate(shape=(720,1280,4), dtype=np.uint8)
+output_image = app.allocate(shape=(720,1280,4), dtype=np.uint8)
+input_image[:] = img
+input_image.sync_to_npu()
+app.call(input_image, output_image)
+output_image.sync_from_npu()
+
+im = Image.fromarray(output_image).convert('RGB')
+im.save("./images/jpg/output_pass.jpg")
+print("DONE!")
+
+# Cleaning up
+del app
