@@ -9,54 +9,46 @@ import pylab as plt
 
 # Making and building the application
 class Application(AppBuilder):
-
-    def __init__(self, kernel:Kernel):
+    
+    def __init__(self, kernel):
         self.kernel = kernel
         super().__init__()
 
-    def callgraph(self, x_in: np.ndarray, x_in2: np.ndarray, x_out: np.ndarray) -> None:
+    def callgraph(self, x_in:np.ndarray, x_in2:np.ndarray, x_out:np.ndarray):
         rows = x_in.shape[0]
-        row_len = x_in.shape[1]
+        bytes_per_row = x_in.shape[1]
         for row in range(rows):
-            kernel_output = self.kernel(x_in[row], row_len, x_in2[row])
+            kernel_output = self.kernel(x_in[row], x_in2[row], bytes_per_row)
             x_out[row] = kernel_output
 
+def buildApp(kernels, M, P, dt):
+    # Making the app
+    app_builder = Application(kernel=kernels[0])
 
-def buildApp(M, P, W, kernels):
-    dt = np.float32
-    app_builder = Application(kernels[0])
+    # Building the app
+    input_form = np.zeros(shape=(1, M*P), dtype=dt)
+    input_form2 = np.zeros(shape=(1, M*P), dtype=dt)
+    output_form = np.zeros(shape=(1, M*P), dtype=dt)
     
-    inputs = np.zeros(shape=(1, M*P), dtype=dt)
-    outputs = np.zeros(shape=(1, M*P), dtype=dt)
-    
-    app_builder.build(inputs, inputs, outputs)
+    app_builder.build(input_form, input_form2, output_form)
 
     app = AppRunner('Application.xclbin')
+    
     return app
 
-def runApp(app, input_data, input_data2, output_data, i):
-    dt = np.float32
-    # if i <= 5:
-    #     plt.plot(input_data)
-    #     plt.savefig(f'./plots/input{i}.png')
-    #     plt.clf()
+def runApp(app, M, P, data, coeffs, dt):
+    # Making app runner and running app
+    input_data = app.allocate(shape=(1, M*P), dtype=dt)
+    input_data2 = app.allocate(shape=(1, M*P), dtype=dt)
+    output_data = app.allocate(shape=(1, M*P), dtype=dt)
+
+    input_data[:] = data
+    input_data.sync_to_npu()
+    input_data2[:] = coeffs
+    input_data2.sync_to_npu()
     
-    inputs = app.allocate(shape=input_data.shape, dtype=dt)
-    inputs2 = app.allocate(shape=input_data.shape, dtype=dt)
-    outputs = app.allocate(shape=output_data.shape, dtype=dt)
+    app.call(input_data, input_data2, output_data)
     
-    inputs[:] = input_data        
-    inputs2[:] = input_data2
-    inputs.sync_to_npu()
-    inputs2.sync_to_npu()
-    
-    app.call(inputs, inputs2, outputs)
-    
-    outputs.sync_from_npu()
-    # if i <= 5:
-    #     plt.plot(outputs)
-    #     plt.savefig(f'./plots/gg{i}.png')
-    #     plt.clf()
-    
-    return outputs[0]
-    
+    output_data.sync_from_npu()
+
+    return output_data

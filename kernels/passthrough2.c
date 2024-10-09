@@ -1,6 +1,4 @@
-#include <stdint.h>
-
-void passthrough(float *in_buffer, float *out_buffer, uint32_t nbytes, float *in_buffer2){
+void passthrough(float *in_buffer, float *in_buffer2, float *out_buffer, uint32_t nbytes){
     const uint8_t vector_lanes = 16;
     const uint8_t vec_factor = 4;
     
@@ -18,7 +16,7 @@ void passthrough(float *in_buffer, float *out_buffer, uint32_t nbytes, float *in
         buffer2 = ::aie::load_v<vector_lanes>(in_buffer2);
 
         // store buffer into the out buffer
-        ::aie::store_v(out_buffer, buffer); 
+        ::aie::store_v(out_buffer, buffer2); 
 
          // We need to increment the buffers by 64 each iteration now
         in_buffer += vector_lanes;
