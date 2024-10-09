@@ -1,8 +1,23 @@
-#include <stdint.h>
+void passthrough(float *in_buffer, float *out_buffer, uint32_t nbytes){
+    const uint8_t vector_lanes = 16;
+    const uint8_t vec_factor = 4;
+    
+    // a buffer to temporarily store our vector   
+    ::aie::vector<float, vector_lanes> buffer;
 
-void passthrough(uint16_t *in_buffer, uint16_t *out_buffer, uint32_t nbytes)
-{
-    for(int i=0; i<nbytes; i++) {
-        out_buffer[i] = in_buffer[i];
+    // divide by vectorization factor (64)
+    uint32_t loop_count = nbytes >> vec_factor; 
+    
+    for(int i=0; i<loop_count; i++) {
+        
+         // load 64 elements into the buffer
+        buffer = ::aie::load_v<vector_lanes>(in_buffer);
+
+        // store buffer into the out buffer
+        ::aie::store_v(out_buffer, buffer); 
+
+         // We need to increment the buffers by 64 each iteration now
+        in_buffer += vector_lanes;
+        out_buffer += vector_lanes;
     }
 }
