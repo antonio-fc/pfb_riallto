@@ -25,13 +25,13 @@ def createKernel(kernel_name):
 
 def generateKernels(W, M, P):
     # Passtrough kernel
-    createKernel("passthrough2")
+    createKernel("frontend")
     dt = np.float32
-    passthrough.ports[0].array = np.ndarray([1, M*P], dtype=dt)
-    passthrough.ports[1].array = np.ndarray([1, M*P], dtype=dt)
-    passthrough.ports[2].array = np.ndarray([1, M*P], dtype=dt)
+    frontend.ports[0].array = np.ndarray([1, M*P], dtype=dt)
+    frontend.ports[1].array = np.ndarray([1, M*P], dtype=dt)
+    frontend.ports[2].array = np.ndarray([1, P], dtype=dt)
 
-    return [passthrough]
+    return [frontend]
 
 if __name__ == "__main__":
     M     = 2          # Number of taps

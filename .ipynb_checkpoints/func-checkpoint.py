@@ -30,9 +30,9 @@ def riallto_stuff(app, x, win_coeffs, M, P, W, dt):
 
         gg = runApp(app, M, P, sample_win, win_coeffs, dt)
         
-        x_fir = pfb_fir_frontend(gg, win_coeffs, M, P)
+        # x_fir = pfb_fir_frontend(sample_win, win_coeffs, M, P)
 
-        x_pfb = fft(x_fir, P)
+        x_pfb = fft(gg, P)
 
         x_psd = squaring_pfb(x_pfb)
 
