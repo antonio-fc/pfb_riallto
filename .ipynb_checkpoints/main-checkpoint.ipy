@@ -34,7 +34,7 @@ def generateKernels(W, M, P):
     return [frontend]
 
 if __name__ == "__main__":
-    M     = 2          # Number of taps
+    M     = 3          # Number of taps
     P     = 1024       # Number of 'branches', also fft length
     W     = 1024       # Number of windows of length M*P in input time stream
     n_int1 = 16          # Number of time integrations on output data
