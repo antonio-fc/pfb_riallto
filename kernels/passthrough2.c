@@ -16,7 +16,7 @@ void passthrough(float *in_buffer, float *in_buffer2, float *out_buffer, uint32_
         buffer2 = ::aie::load_v<vector_lanes>(in_buffer2);
 
         // store buffer into the out buffer
-        ::aie::store_v(out_buffer, buffer2); 
+        ::aie::store_v(out_buffer, buffer); 
 
          // We need to increment the buffers by 64 each iteration now
         in_buffer += vector_lanes;

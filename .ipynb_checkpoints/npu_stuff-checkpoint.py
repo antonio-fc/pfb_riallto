@@ -1,24 +1,26 @@
 import npu
 import numpy as np
+import pylab as plt
 from npu.build.appbuilder import AppBuilder
 from npu.build.kernel import Kernel
 from npu.runtime import AppRunner
-from npu.utils import OpenCVImageReader, image_plot
-from PIL import Image
-import pylab as plt
+from npu.build.mtkernel import MTSplit, MTConcat
+from npu.build.mtkernel import MTPassThrough
 
 # Making and building the application
 class Application(AppBuilder):
     
     def __init__(self, kernel):
         self.kernel = kernel
+        self.mtbuffer_in = MTPassThrough()
         super().__init__()
 
     def callgraph(self, x_in:np.ndarray, x_in2:np.ndarray, x_out:np.ndarray):
         rows = x_in.shape[0]
         bytes_per_row = x_in.shape[1]
         for row in range(rows):
-            kernel_output = self.kernel(x_in[row], x_in2[row], bytes_per_row)
+            mtpin = self.mtbuffer_in(x_in[row])
+            kernel_output = self.kernel(mtpin, x_in[row], bytes_per_row)
             x_out[row] = kernel_output
 
 def buildApp(kernels, M, P, dt):

@@ -1,11 +1,11 @@
 import npu
 import numpy as np
-from npu.build.appbuilder import AppBuilder
-from npu.runtime import AppRunner
 import pylab as plt
 import scipy
+import time
 
-from npu_stuff import buildApp, runApp
+from npu_stuff import buildApp
+from func import pfb_spectrometer
 
 def db(x):
     """ Convert linear value to dB value """
@@ -37,7 +37,8 @@ if __name__ == "__main__":
     M     = 2          # Number of taps
     P     = 1024       # Number of 'branches', also fft length
     W     = 1024       # Number of windows of length M*P in input time stream
-    n_int = 10          # Number of time integrations on output data
+    n_int1 = 16          # Number of time integrations on output data
+    n_int2 = 1024
     dt=np.float32
 
     # Creating the app
@@ -45,8 +46,8 @@ if __name__ == "__main__":
     app = buildApp(kernels, M, P, dt)
 
     # Generating input data
-    noise = np.random.normal(loc=0.5, scale=0.1, size=M*P).astype(dt)
-    samples = np.arange(M*P)
+    noise = np.random.normal(loc=0.5, scale=0.1, size=M*P*W).astype(dt)
+    samples = np.arange(M*P*W)
     freq    = 1
     amp     = 1
     cw_signal = (amp * np.sin(samples * freq))
@@ -65,20 +66,24 @@ if __name__ == "__main__":
     plt.clf()
 
     # Run app
-    output_data = runApp(app, M, P, data, win_coeffs, dt)
+    X_psd = pfb_spectrometer(app, data, win_coeffs, M, P, W, n_int1, dt)
+    X_psd2 = pfb_spectrometer(app, data, win_coeffs, M, P, W, n_int2, dt)
 
     # Checking results
-    print(f"Are the arrays are equal?: {np.array_equal(data, output_data)}")
+    plt.imshow(db(X_psd), cmap='viridis', aspect='auto')
+    plt.colorbar()
+    plt.xlabel("Channel")
+    plt.ylabel("Time")
+    plt.savefig('./plots/plot1.png')
+    plt.clf()
 
-    gg = np.zeros(shape=(1, M*P), dtype=dt)
-    gg[:] = output_data
-    gg = gg[0]
-    # print(type(gg))
-    # print(gg.shape)
-    # print(gg.dtype)
-    # print(gg)
-    plt.plot(gg)
-    plt.savefig('./plots/output.png')
+    plt.plot(db(X_psd[0]), c='#cccccc', label='short integration')
+    plt.plot(db(X_psd2[1]), c='#cc0000', label='long integration')
+    plt.xlim(0, P/2)
+    plt.xlabel("Channel")
+    plt.ylabel("Power [dB]")
+    plt.legend()
+    plt.savefig('./plots/plot2.png')
 
     # Clean-up
     del app
