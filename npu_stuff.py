@@ -10,22 +10,24 @@ from npu.build.mtkernel import MTPassThrough
 # Making and building the application
 class Application(AppBuilder):
     
-    def __init__(self, kernel):
-        self.kernel = kernel
+    def __init__(self, kernels):
+        self.frontend = kernels[0]
+        self.fft = kernels[1]
         self.mtbuffer_in = MTPassThrough()
         super().__init__()
 
     def callgraph(self, x_in:np.ndarray, x_in2:np.ndarray, x_out:np.ndarray):
         rows = x_in.shape[0]
-        bytes_per_row = x_in.shape[1]
+        size = x_in.shape[1]
+        size2 = 1024
         for row in range(rows):
-            mtpin = self.mtbuffer_in(x_in[row])
-            kernel_output = self.kernel(mtpin, x_in2[row], bytes_per_row)
-            x_out[row] = kernel_output
+            frontend_output = self.frontend(x_in[row], x_in2[row], size)
+            fft_output = self.fft(frontend_output, size2)
+            x_out[row] = fft_output
 
 def buildApp(kernels, M, P, dt):
     # Making the app
-    app_builder = Application(kernel=kernels[0])
+    app_builder = Application(kernels)
 
     # Building the app
     input_form = np.zeros(shape=(1, M*P), dtype=dt)

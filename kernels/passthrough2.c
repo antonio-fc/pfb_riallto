@@ -1,4 +1,4 @@
-void passthrough(float *in_buffer, float *in_buffer2, float *out_buffer, uint32_t nbytes){
+void passthrough2(float *in_buffer, float *in_buffer2, float *out_buffer, uint32_t nbytes){
     const uint8_t vector_lanes = 16;
     const uint8_t vec_factor = 4;
     

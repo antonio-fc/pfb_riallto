@@ -23,15 +23,18 @@ def createKernel(kernel_name):
         data = file.read()
     get_ipython().run_cell_magic('kernel', '', data)
 
-def generateKernels(W, M, P):
-    # Passtrough kernel
+def generateKernels(W, M, P, dt):
+    # Frontend kernel
     createKernel("frontend")
-    dt = np.float32
     frontend.ports[0].array = np.ndarray([1, M*P], dtype=dt)
     frontend.ports[1].array = np.ndarray([1, M*P], dtype=dt)
     frontend.ports[2].array = np.ndarray([1, P], dtype=dt)
 
-    return [frontend]
+    createKernel("passthrough")
+    passthrough.ports[0].array = np.ndarray([1, P], dtype=dt)
+    passthrough.ports[1].array = np.ndarray([1, P], dtype=dt)
+
+    return [frontend, passthrough]
 
 if __name__ == "__main__":
     M     = 3          # Number of taps
@@ -42,7 +45,7 @@ if __name__ == "__main__":
     dt=np.float32
 
     # Creating the app
-    kernels = generateKernels(W, M, P)
+    kernels = generateKernels(W, M, P, dt)
     app = buildApp(kernels, M, P, dt)
 
     # Generating input data

@@ -19,7 +19,7 @@ void frontend(float *in_buffer, float *in_buffer2, float *out_buffer, uint32_t n
     // divide by vectorization factor (64)
     uint32_t loop_count = n >> vec_factor;
     uint32_t third_count = loop_count/3;
-    uint32_t third = n/3;
+    uint32_t third = n/3;    
 
     for(int i=0; i<third_count; i++) {
         // load 64 elements into the buffer
